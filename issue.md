@@ -1,5 +1,7 @@
 # Phase 3 - Authentication (Login, Register & Route Protection)
 
+> **Status:** In Progress (Branch: `dev/phase-3-authentication`)
+
 ## Deskripsi
 Mengimplementasikan sistem autentikasi pengguna menggunakan **Supabase Auth** pada aplikasi Next.js App Router. Phase ini mencakup halaman register, halaman login, fungsi logout, dan proteksi rute agar halaman dashboard hanya dapat diakses oleh pengguna yang sudah login.
 
