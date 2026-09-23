@@ -1,6 +1,6 @@
 # Phase 3 - Authentication (Login, Register & Route Protection)
 
-> **Status:** In Progress (Branch: `dev/phase-3-authentication`)
+> **Status:** Completed (Branch: `dev/phase-3-authentication`)
 
 ## Deskripsi
 Mengimplementasikan sistem autentikasi pengguna menggunakan **Supabase Auth** pada aplikasi Next.js App Router. Phase ini mencakup halaman register, halaman login, fungsi logout, dan proteksi rute agar halaman dashboard hanya dapat diakses oleh pengguna yang sudah login.
@@ -10,38 +10,38 @@ Mengimplementasikan sistem autentikasi pengguna menggunakan **Supabase Auth** pa
 ## Tasks
 
 ### A. Halaman Register (`/register`)
-- [ ] Buat halaman `src/app/register/page.tsx` dengan form register.
-- [ ] Form memiliki field: **Email**, **Password**, **Konfirmasi Password**.
-- [ ] Validasi sisi klien:
+- [x] Buat halaman `src/app/register/page.tsx` dengan form register.
+- [x] Form memiliki field: **Email**, **Password**, **Konfirmasi Password**.
+- [x] Validasi sisi klien:
   - Email wajib diisi dan format harus valid.
   - Password wajib diisi.
   - Konfirmasi password harus sama dengan password.
-- [ ] Panggil `supabase.auth.signUp()` saat form di-submit.
-- [ ] Tampilkan pesan sukses jika akun berhasil dibuat.
-- [ ] Tampilkan pesan error yang sesuai jika gagal (contoh: email sudah digunakan).
-- [ ] Terdapat link navigasi ke halaman Login.
+- [x] Panggil `supabase.auth.signUp()` saat form di-submit.
+- [x] Tampilkan pesan sukses jika akun berhasil dibuat.
+- [x] Tampilkan pesan error yang sesuai jika gagal (contoh: email sudah digunakan).
+- [x] Terdapat link navigasi ke halaman Login.
 
 ### B. Halaman Login (`/login`)
-- [ ] Buat halaman `src/app/login/page.tsx` dengan form login.
-- [ ] Form memiliki field: **Email**, **Password**.
-- [ ] Panggil `supabase.auth.signInWithPassword()` saat form di-submit.
-- [ ] Jika berhasil, redirect pengguna ke `/dashboard`.
-- [ ] Tampilkan pesan error jika email/password salah.
-- [ ] Terdapat link navigasi ke halaman Register.
+- [x] Buat halaman `src/app/login/page.tsx` dengan form login.
+- [x] Form memiliki field: **Email**, **Password**.
+- [x] Panggil `supabase.auth.signInWithPassword()` saat form di-submit.
+- [x] Jika berhasil, redirect pengguna ke `/dashboard`.
+- [x] Tampilkan pesan error jika email/password salah.
+- [x] Terdapat link navigasi ke halaman Register.
 
 ### C. Fungsi Logout
-- [ ] Buat komponen tombol Logout yang dapat dipanggil dari dashboard.
-- [ ] Panggil `supabase.auth.signOut()` saat tombol ditekan.
-- [ ] Setelah logout, redirect pengguna ke `/login`.
+- [x] Buat komponen tombol Logout yang dapat dipanggil dari dashboard.
+- [x] Panggil `supabase.auth.signOut()` saat tombol ditekan.
+- [x] Setelah logout, redirect pengguna ke `/login`.
 
 ### D. Proteksi Rute (Route Protection)
-- [ ] Buat `src/middleware.ts` menggunakan `@supabase/ssr` untuk memeriksa session.
-- [ ] Rute `/dashboard` dan turunannya hanya dapat diakses oleh pengguna yang sudah login.
-- [ ] Pengguna yang belum login akan di-redirect ke `/login`.
-- [ ] Pengguna yang sudah login dan mengakses `/login` atau `/register` akan di-redirect ke `/dashboard`.
+- [x] Buat `src/middleware.ts` menggunakan `@supabase/ssr` untuk memeriksa session.
+- [x] Rute `/dashboard` dan turunannya hanya dapat diakses oleh pengguna yang sudah login.
+- [x] Pengguna yang belum login akan di-redirect ke `/login`.
+- [x] Pengguna yang sudah login dan mengakses `/login` atau `/register` akan di-redirect ke `/dashboard`.
 
 ### E. Halaman Dashboard (Placeholder)
-- [ ] Buat placeholder `src/app/dashboard/page.tsx` yang menampilkan:
+- [x] Buat placeholder `src/app/dashboard/page.tsx` yang menampilkan:
   - Teks sambutan dengan email pengguna yang sedang login.
   - Tombol Logout.
 
@@ -57,9 +57,9 @@ Mengimplementasikan sistem autentikasi pengguna menggunakan **Supabase Auth** pa
 ---
 
 ## Acceptance Criteria
-- [ ] Pengguna baru dapat mendaftar dengan email dan password.
-- [ ] Pengguna terdaftar dapat login dan diarahkan ke halaman Dashboard.
-- [ ] Pengguna dapat logout dan diarahkan kembali ke halaman Login.
-- [ ] Mengakses `/dashboard` tanpa login otomatis di-redirect ke `/login`.
-- [ ] Mengakses `/login` dalam kondisi sudah login otomatis di-redirect ke `/dashboard`.
-- [ ] Tidak ada error TypeScript saat `npm run build`.
+- [x] Pengguna baru dapat mendaftar dengan email dan password.
+- [x] Pengguna terdaftar dapat login dan diarahkan ke halaman Dashboard.
+- [x] Pengguna dapat logout dan diarahkan kembali ke halaman Login.
+- [x] Mengakses `/dashboard` tanpa login otomatis di-redirect ke `/login`.
+- [x] Mengakses `/login` dalam kondisi sudah login otomatis di-redirect ke `/dashboard`.
+- [x] Tidak ada error TypeScript saat `npm run build`.
