@@ -30,9 +30,9 @@ export function SummaryCard({ title, amount, icon: Icon, type = 'balance' }: Sum
   };
 
   return (
-    <div className="bg-white rounded-lg border shadow-sm p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm p-6 transition-colors">
       <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <h3 className="text-sm font-medium">
+        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
           {title}
         </h3>
         <Icon className="h-4 w-4 text-gray-400" />
@@ -41,7 +41,7 @@ export function SummaryCard({ title, amount, icon: Icon, type = 'balance' }: Sum
         <div className={`text-2xl font-bold ${getTextColor()}`}>
           {formatCurrency(amount)}
         </div>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-gray-500 dark:text-gray-400">
           Bulan ini
         </p>
       </div>

@@ -2,6 +2,8 @@
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { MonthlyData } from '@/utils/chartHelpers'
+import { SkeletonChart } from '@/components/Skeleton'
+import { useEffect, useState } from 'react'
 
 interface MonthlyTrendChartProps {
   data: MonthlyData[]
@@ -9,39 +11,47 @@ interface MonthlyTrendChartProps {
 }
 
 export function MonthlyTrendChart({ data, isLoading }: MonthlyTrendChartProps) {
+  const [isDark, setIsDark] = useState(false)
+
+  useEffect(() => {
+    setIsDark(document.documentElement.classList.contains('dark'))
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains('dark'))
+    })
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+    return () => observer.disconnect()
+  }, [])
+
   if (isLoading) {
-    return (
-      <div className="w-full h-80 bg-white rounded-lg border shadow-sm p-6 animate-pulse">
-        <div className="flex items-center justify-center h-full">
-          <div className="text-gray-400">Memuat grafik...</div>
-        </div>
-      </div>
-    )
+    return <SkeletonChart />
   }
 
   if (!data || data.length === 0) {
     return (
-      <div className="w-full h-80 bg-white rounded-lg border shadow-sm p-6 flex items-center justify-center">
+      <div className="w-full h-80 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm p-6 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-500 mb-2">Belum ada data tren keuangan</p>
-          <p className="text-sm text-gray-400">Tambahkan transaksi untuk melihat tren bulanan</p>
+          <p className="text-gray-500 dark:text-gray-400 mb-2">Belum ada data tren keuangan</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500">Tambahkan transaksi untuk melihat tren bulanan</p>
         </div>
       </div>
     )
   }
 
+  const gridColor = isDark ? '#374151' : '#E5E7EB'
+  const textColor = isDark ? '#9CA3AF' : '#6B7280'
+
   return (
-    <div className="w-full bg-white rounded-lg border shadow-sm p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Tren Pemasukan & Pengeluaran</h3>
+    <div className="w-full bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm p-6 transition-colors">
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Tren Pemasukan & Pengeluaran</h3>
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" />
+          <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
           <XAxis 
             dataKey="month" 
-            tick={{ fontSize: 12 }}
+            tick={{ fontSize: 12, fill: textColor }}
           />
           <YAxis
-            tick={{ fontSize: 12 }}
+            tick={{ fontSize: 12, fill: textColor }}
             tickFormatter={(value) => {
               if (value >= 1000000) {
                 return `${(value / 1000000).toFixed(1)}jt`
@@ -53,6 +63,11 @@ export function MonthlyTrendChart({ data, isLoading }: MonthlyTrendChartProps) {
             }}
           />
           <Tooltip
+            contentStyle={{ 
+              backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
+              borderColor: isDark ? '#374151' : '#E5E7EB',
+              color: isDark ? '#F9FAFB' : '#111827'
+            }}
             formatter={(value) =>
               new Intl.NumberFormat('id-ID', {
                 style: 'currency',

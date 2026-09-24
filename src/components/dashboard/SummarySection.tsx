@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Wallet, TrendingUp, TrendingDown } from 'lucide-react'
 import { SummaryCard } from './SummaryCard'
 import { createClient } from '@/utils/supabase/client'
+import { SkeletonCard } from '@/components/Skeleton'
 
 interface SummaryData {
   totalIncome: number
@@ -89,13 +90,7 @@ export function SummarySection() {
   if (summary.isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {[1, 2, 3].map(i => (
-          <div key={i} className="bg-white p-6 rounded-lg border shadow-sm animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-1/3 mb-4"></div>
-            <div className="h-8 bg-gray-200 rounded w-2/3"></div>
-            <div className="h-3 bg-gray-200 rounded w-1/4 mt-2"></div>
-          </div>
-        ))}
+        {[1, 2, 3].map(i => <SkeletonCard key={i} />)}
       </div>
     )
   }
