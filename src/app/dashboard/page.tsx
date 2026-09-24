@@ -109,8 +109,11 @@ export default function DashboardPage() {
       return false
     }
     // Category filter
-    if (selectedCategory !== 'all' && t.category !== selectedCategory) {
-      return false
+    if (selectedCategory !== 'all') {
+      const matchesCategory = selectedCategory === 'lainnya'
+        ? t.category === 'lainnya' || !!t.custom_category
+        : t.category === selectedCategory
+      if (!matchesCategory) return false
     }
     return true
   })
