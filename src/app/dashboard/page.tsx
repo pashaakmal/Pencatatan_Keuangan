@@ -11,6 +11,9 @@ import { EditTransactionModal } from '@/components/EditTransactionModal'
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog'
 import { TransactionList } from '@/components/TransactionList'
 import { SummarySection } from '@/components/dashboard/SummarySection'
+import { ExpensePieChart } from '@/components/dashboard/charts/ExpensePieChart'
+import { MonthlyTrendChart } from '@/components/dashboard/charts/MonthlyTrendChart'
+import { getExpensesByCategory, getMonthlyTrend } from '@/utils/chartHelpers'
 import { Plus, Filter } from 'lucide-react'
 
 export default function DashboardPage() {
@@ -165,6 +168,18 @@ export default function DashboardPage() {
           </div>
 
           <SummarySection />
+
+          {/* Charts Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <ExpensePieChart 
+              data={getExpensesByCategory(transactions)} 
+              isLoading={loading} 
+            />
+            <MonthlyTrendChart 
+              data={getMonthlyTrend(transactions)} 
+              isLoading={loading} 
+            />
+          </div>
 
           {/* Transactions Filter & List Section */}
           <div className="bg-white overflow-hidden shadow rounded-lg border border-gray-200">
