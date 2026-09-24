@@ -40,7 +40,7 @@ export function TransactionList({ transactions, onEdit, onDelete, isDeleting }: 
       <table className="w-full">
         <thead>
           <tr className="border-b border-gray-200 bg-gray-50">
-            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Tanggal</th>
+            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Waktu</th>
             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Kategori</th>
             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Catatan</th>
             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Jenis</th>
@@ -52,7 +52,7 @@ export function TransactionList({ transactions, onEdit, onDelete, isDeleting }: 
           {transactions.map(transaction => (
             <tr key={transaction.id} className="border-b border-gray-200 hover:bg-gray-50">
               <td className="px-4 py-3 text-sm text-gray-900">
-                {format(new Date(transaction.date), 'dd MMM yyyy', { locale: idLocale })}
+                {format(new Date(transaction.date), 'dd MMM yyyy, HH:mm', { locale: idLocale })}
               </td>
               <td className="px-4 py-3 text-sm text-gray-900">
                 {getCategoryLabel(transaction.category)}

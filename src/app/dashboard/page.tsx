@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import type { User } from '@supabase/supabase-js'
@@ -10,20 +10,39 @@ import { AddTransactionModal } from '@/components/AddTransactionModal'
 import { EditTransactionModal } from '@/components/EditTransactionModal'
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog'
 import { TransactionList } from '@/components/TransactionList'
-import { Plus } from 'lucide-react'
+import { SummarySection } from '@/components/dashboard/SummarySection'
+import { Plus, Filter } from 'lucide-react'
 
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
+  
+  // Modals
   const [showAddModal, setShowAddModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  
+
+  // Filters
+  const [selectedMonth, setSelectedMonth] = useState<string>(
+    new Date().toISOString().slice(0, 7) // YYYY-MM
+  )
+  const [selectedType, setSelectedType] = useState<string>('all')
+  const [selectedCategory, setSelectedCategory] = useState<string>('all')
+
   const router = useRouter()
   const supabase = createClient()
+
+  const loadTransactions = useCallback(async () => {
+    try {
+      const data = await getTransactions()
+      setTransactions(data)
+    } catch (error) {
+      console.error('Failed to load transactions:', error)
+    }
+  }, [])
 
   useEffect(() => {
     const getUser = async () => {
@@ -37,16 +56,7 @@ export default function DashboardPage() {
       setLoading(false)
     }
     getUser()
-  }, [router, supabase.auth])
-
-  const loadTransactions = async () => {
-    try {
-      const data = await getTransactions()
-      setTransactions(data)
-    } catch (error) {
-      console.error('Failed to load transactions:', error)
-    }
-  }
+  }, [router, supabase.auth, loadTransactions])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -88,32 +98,25 @@ export default function DashboardPage() {
     }
   }
 
-  // Calculate summary
-  const currentMonth = new Date().getMonth()
-  const currentYear = new Date().getFullYear()
-  
-  const monthlyTransactions = transactions.filter(t => {
-    const date = new Date(t.date)
-    return date.getMonth() === currentMonth && date.getFullYear() === currentYear
+  // Filter transactions
+  const filteredTransactions = transactions.filter(t => {
+    // Month filter (YYYY-MM)
+    if (selectedMonth && !t.date.startsWith(selectedMonth)) {
+      return false
+    }
+    // Type filter
+    if (selectedType !== 'all' && t.type !== selectedType) {
+      return false
+    }
+    // Category filter
+    if (selectedCategory !== 'all') {
+      const matchesCategory = selectedCategory === 'lainnya'
+        ? t.category === 'lainnya' || !!t.custom_category
+        : t.category === selectedCategory
+      if (!matchesCategory) return false
+    }
+    return true
   })
-
-  const totalIncome = monthlyTransactions
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + Number(t.amount), 0)
-
-  const totalExpense = monthlyTransactions
-    .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + Number(t.amount), 0)
-
-  const balance = totalIncome - totalExpense
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-    }).format(amount)
-  }
 
   if (loading) {
     return (
@@ -143,53 +146,76 @@ export default function DashboardPage() {
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          {/* Welcome */}
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">
-              Selamat datang!
-            </h2>
-            <p className="text-gray-600">
-              Anda login sebagai: <span className="font-medium">{user?.email}</span>
-            </p>
+          <div className="mb-6 flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">
+                Selamat datang!
+              </h2>
+              <p className="text-gray-600">
+                Anda login sebagai: <span className="font-medium">{user?.email}</span>
+              </p>
+            </div>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-medium shadow-sm"
+            >
+              <Plus size={20} />
+              Tambah Transaksi
+            </button>
           </div>
 
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-green-50 p-6 rounded-lg border border-green-200">
-              <h3 className="text-lg font-semibold text-green-800">Total Pemasukan</h3>
-              <p className="text-3xl font-bold text-green-600 mt-2">{formatCurrency(totalIncome)}</p>
-              <p className="text-sm text-green-600 mt-1">Bulan ini</p>
-            </div>
-            
-            <div className="bg-red-50 p-6 rounded-lg border border-red-200">
-              <h3 className="text-lg font-semibold text-red-800">Total Pengeluaran</h3>
-              <p className="text-3xl font-bold text-red-600 mt-2">{formatCurrency(totalExpense)}</p>
-              <p className="text-sm text-red-600 mt-1">Bulan ini</p>
-            </div>
-            
-            <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
-              <h3 className="text-lg font-semibold text-blue-800">Saldo</h3>
-              <p className="text-3xl font-bold text-blue-600 mt-2">{formatCurrency(balance)}</p>
-              <p className="text-sm text-blue-600 mt-1">Bulan ini</p>
-            </div>
-          </div>
+          <SummarySection />
 
-          {/* Transactions Section */}
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          {/* Transactions Filter & List Section */}
+          <div className="bg-white overflow-hidden shadow rounded-lg border border-gray-200">
             <div className="px-4 py-5 sm:p-6">
-              <div className="flex justify-between items-center mb-6">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 pb-4 border-b border-gray-200">
                 <h3 className="text-xl font-bold text-gray-900">Daftar Transaksi</h3>
-                <button
-                  onClick={() => setShowAddModal(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-medium"
-                >
-                  <Plus size={20} />
-                  Tambah Transaksi
-                </button>
+                
+                {/* Filters */}
+                <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                  <div className="flex items-center gap-1 text-sm text-gray-500">
+                    <Filter size={16} />
+                    <span>Filter:</span>
+                  </div>
+                  
+                  {/* Month Picker */}
+                  <input
+                    type="month"
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(e.target.value)}
+                    className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+
+                  {/* Type Filter */}
+                  <select
+                    value={selectedType}
+                    onChange={(e) => setSelectedType(e.target.value)}
+                    className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="all">Semua Jenis</option>
+                    <option value="income">Pemasukan</option>
+                    <option value="expense">Pengeluaran</option>
+                  </select>
+
+                  {/* Category Filter */}
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="all">Semua Kategori</option>
+                    <option value="makanan">Makanan</option>
+                    <option value="transportasi">Transportasi</option>
+                    <option value="hiburan">Hiburan</option>
+                    <option value="tagihan">Tagihan</option>
+                    <option value="lainnya">Lainnya</option>
+                  </select>
+                </div>
               </div>
 
               <TransactionList
-                transactions={transactions}
+                transactions={filteredTransactions}
                 onEdit={handleEditClick}
                 onDelete={handleDeleteClick}
                 isDeleting={deletingId}

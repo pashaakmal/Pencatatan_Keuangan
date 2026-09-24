@@ -15,13 +15,23 @@ interface AddTransactionModalProps {
 export function AddTransactionModal({ isOpen, onClose, onSuccess }: AddTransactionModalProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showCustomCategory, setShowCustomCategory] = useState(false)
+  
+  const now = new Date()
+  const defaultDate = format(now, 'yyyy-MM-dd')
+  const defaultTime = format(now, 'HH:mm')
+  
   const [formData, setFormData] = useState<TransactionInsert>({
     amount: 0,
     type: 'expense',
     category: 'makanan',
-    date: format(new Date(), 'yyyy-MM-dd'),
+    custom_category: null,
+    date: new Date().toISOString(),
     note: null,
   })
+  
+  const [transactionDate, setTransactionDate] = useState(defaultDate)
+  const [transactionTime, setTransactionTime] = useState(defaultTime)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -30,10 +40,30 @@ export function AddTransactionModal({ isOpen, onClose, onSuccess }: AddTransacti
       setFormData(prev => ({ ...prev, [name]: parseFloat(value) || 0 }))
     } else if (name === 'note') {
       setFormData(prev => ({ ...prev, [name]: value || null }))
+    } else if (name === 'category') {
+      const isCustom = value === 'lainnya'
+      setShowCustomCategory(isCustom)
+      setFormData(prev => ({ 
+        ...prev, 
+        category: value,
+        custom_category: isCustom ? '' : null
+      }))
+    } else if (name === 'custom_category') {
+      setFormData(prev => ({ ...prev, custom_category: value }))
     } else {
       setFormData(prev => ({ ...prev, [name]: value }))
     }
   }
+
+  const handleDateTimeChange = () => {
+    const dateTime = new Date(`${transactionDate}T${transactionTime}`)
+    setFormData(prev => ({ ...prev, date: dateTime.toISOString() }))
+  }
+
+  // Update form data when date/time changes
+  useState(() => {
+    handleDateTimeChange()
+  })
 
   const validateForm = () => {
     if (!formData.amount || formData.amount <= 0) {
@@ -48,7 +78,11 @@ export function AddTransactionModal({ isOpen, onClose, onSuccess }: AddTransacti
       setError('Kategori harus dipilih')
       return false
     }
-    if (!formData.date) {
+    if (formData.category === 'lainnya' && !formData.custom_category?.trim()) {
+      setError('Kategori custom harus diisi')
+      return false
+    }
+    if (!transactionDate) {
       setError('Tanggal harus diisi')
       return false
     }
@@ -58,20 +92,39 @@ export function AddTransactionModal({ isOpen, onClose, onSuccess }: AddTransacti
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+    
+    // Update date with time before submit
+    handleDateTimeChange()
 
     if (!validateForm()) return
 
     setLoading(true)
 
     try {
-      await createTransaction(formData)
+      // Prepare data - use custom_category as category if "lainnya" is selected
+      const submitData = {
+        ...formData,
+        category: formData.category === 'lainnya' && formData.custom_category 
+          ? formData.custom_category 
+          : formData.category,
+        custom_category: formData.category === 'lainnya' ? formData.custom_category : null
+      }
+      
+      await createTransaction(submitData)
+      
+      // Reset form
       setFormData({
         amount: 0,
         type: 'expense',
         category: 'makanan',
-        date: format(new Date(), 'yyyy-MM-dd'),
+        custom_category: null,
+        date: new Date().toISOString(),
         note: null,
       })
+      setTransactionDate(defaultDate)
+      setTransactionTime(defaultTime)
+      setShowCustomCategory(false)
+      
       onSuccess()
       onClose()
     } catch (err) {
@@ -85,7 +138,7 @@ export function AddTransactionModal({ isOpen, onClose, onSuccess }: AddTransacti
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+      <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Tambah Transaksi</h2>
 
         {error && (
@@ -154,19 +207,60 @@ export function AddTransactionModal({ isOpen, onClose, onSuccess }: AddTransacti
             </select>
           </div>
 
-          <div>
-            <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
-              Tanggal *
-            </label>
-            <input
-              id="date"
-              name="date"
-              type="date"
-              required
-              value={formData.date}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
+          {showCustomCategory && (
+            <div>
+              <label htmlFor="custom_category" className="block text-sm font-medium text-gray-700 mb-1">
+                Nama Kategori *
+              </label>
+              <input
+                id="custom_category"
+                name="custom_category"
+                type="text"
+                required
+                value={formData.custom_category || ''}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Masukkan nama kategori..."
+              />
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
+                Tanggal *
+              </label>
+              <input
+                id="date"
+                name="date"
+                type="date"
+                required
+                value={transactionDate}
+                onChange={(e) => {
+                  setTransactionDate(e.target.value)
+                  setTimeout(handleDateTimeChange, 0)
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="time" className="block text-sm font-medium text-gray-700 mb-1">
+                Waktu *
+              </label>
+              <input
+                id="time"
+                name="time"
+                type="time"
+                required
+                value={transactionTime}
+                onChange={(e) => {
+                  setTransactionTime(e.target.value)
+                  setTimeout(handleDateTimeChange, 0)
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
           </div>
 
           <div>
