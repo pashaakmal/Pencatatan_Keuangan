@@ -11,9 +11,11 @@ interface SummaryCardProps {
     isPositive: boolean;
   };
   type?: 'income' | 'expense' | 'balance';
+  secondaryAmount?: number;
+  secondaryLabel?: string;
 }
 
-export function SummaryCard({ title, amount, icon: Icon, type = 'balance' }: SummaryCardProps) {
+export function SummaryCard({ title, amount, icon: Icon, type = 'balance', secondaryAmount, secondaryLabel }: SummaryCardProps) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
@@ -42,8 +44,13 @@ export function SummaryCard({ title, amount, icon: Icon, type = 'balance' }: Sum
           {formatCurrency(amount)}
         </div>
         <p className="text-xs text-gray-500 dark:text-gray-400">
-          Bulan ini
+          Keseluruhan
         </p>
+        {secondaryAmount !== undefined && (
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 border-t border-gray-100 dark:border-gray-700 pt-2">
+            {secondaryLabel}: <span className="font-medium">{formatCurrency(secondaryAmount)}</span>
+          </p>
+        )}
       </div>
     </div>
   );

@@ -3,7 +3,7 @@
 import { createClient } from '@/utils/supabase/server'
 import type { Transaction, TransactionInsert, TransactionUpdate } from '@/types/database'
 
-export async function getTransactions() {
+export async function getTransactions(): Promise<Transaction[]> {
   const supabase = await createClient()
 
   const {
@@ -11,7 +11,7 @@ export async function getTransactions() {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    throw new Error('Unauthorized')
+    return []
   }
 
   const { data, error } = await supabase
@@ -21,7 +21,8 @@ export async function getTransactions() {
     .order('date', { ascending: false })
 
   if (error) {
-    throw new Error(error.message)
+    console.error('Error fetching transactions:', error.message)
+    return []
   }
 
   return data as Transaction[]

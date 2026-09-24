@@ -10,6 +10,9 @@ interface SummaryData {
   totalIncome: number
   totalExpense: number
   balance: number
+  monthlyIncome: number
+  monthlyExpense: number
+  monthlyBalance: number
   isLoading: boolean
   error?: string
 }
@@ -19,6 +22,9 @@ export function SummarySection() {
     totalIncome: 0,
     totalExpense: 0,
     balance: 0,
+    monthlyIncome: 0,
+    monthlyExpense: 0,
+    monthlyBalance: 0,
     isLoading: true,
   })
 
@@ -31,46 +37,49 @@ export function SummarySection() {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return
 
-        // Get current month/year
+        // Fetch all transactions with date
+        const { data: allTransactions, error: fetchError } = await supabase
+          .from('transactions')
+          .select('amount, type, date')
+          .eq('user_id', user.id)
+
+        if (fetchError) throw fetchError
+
+        // Current month and year
         const now = new Date()
-        const currentMonth = now.getMonth() + 1 // JavaScript months are 0-indexed
+        const currentMonth = now.getMonth()
         const currentYear = now.getFullYear()
 
-        // Build date ranges for current month
-        const startDate = new Date(currentYear, currentMonth - 1, 1).toISOString()
-        const endDate = new Date(currentYear, currentMonth, 0).toISOString()
-
-        // Fetch income total
-        const { data: incomeData, error: incomeError } = await supabase
-          .from('transactions')
-          .select('amount')
-          .eq('user_id', user.id)
-          .eq('type', 'income')
-          .gte('date', startDate)
-          .lte('date', endDate)
-
-        if (incomeError) throw incomeError
-
-        // Fetch expense total
-        const { data: expenseData, error: expenseError } = await supabase
-          .from('transactions')
-          .select('amount')
-          .eq('user_id', user.id)
-          .eq('type', 'expense')
-          .gte('date', startDate)
-          .lte('date', endDate)
-
-        if (expenseError) throw expenseError
-
-        // Calculate totals
-        const totalIncome = incomeData?.reduce((sum, t) => sum + Number(t.amount), 0) || 0
-        const totalExpense = expenseData?.reduce((sum, t) => sum + Number(t.amount), 0) || 0
+        // Calculate all-time totals
+        const totalIncome = allTransactions
+          ?.filter(t => t.type === 'income')
+          .reduce((sum, t) => sum + Number(t.amount), 0) || 0
+        const totalExpense = allTransactions
+          ?.filter(t => t.type === 'expense')
+          .reduce((sum, t) => sum + Number(t.amount), 0) || 0
         const balance = totalIncome - totalExpense
+
+        // Calculate monthly totals
+        const monthlyTransactions = allTransactions?.filter(t => {
+          const d = new Date(t.date)
+          return d.getMonth() === currentMonth && d.getFullYear() === currentYear
+        }) || []
+
+        const monthlyIncome = monthlyTransactions
+          .filter(t => t.type === 'income')
+          .reduce((sum, t) => sum + Number(t.amount), 0)
+        const monthlyExpense = monthlyTransactions
+          .filter(t => t.type === 'expense')
+          .reduce((sum, t) => sum + Number(t.amount), 0)
+        const monthlyBalance = monthlyIncome - monthlyExpense
 
         setSummary({
           totalIncome,
           totalExpense,
           balance,
+          monthlyIncome,
+          monthlyExpense,
+          monthlyBalance,
           isLoading: false,
         })
 
@@ -110,18 +119,24 @@ export function SummarySection() {
         amount={summary.totalIncome}
         icon={TrendingUp}
         type="income"
+        secondaryAmount={summary.monthlyIncome}
+        secondaryLabel="Bulan ini"
       />
       <SummaryCard
         title="Total Pengeluaran"
         amount={summary.totalExpense}
         icon={TrendingDown}
         type="expense"
+        secondaryAmount={summary.monthlyExpense}
+        secondaryLabel="Bulan ini"
       />
       <SummaryCard
-        title="Saldo"
+        title="Total Saldo"
         amount={summary.balance}
         icon={Wallet}
         type="balance"
+        secondaryAmount={summary.monthlyBalance}
+        secondaryLabel="Bulan ini"
       />
     </div>
   )

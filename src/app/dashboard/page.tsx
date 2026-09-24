@@ -48,8 +48,9 @@ export default function DashboardPage() {
       setTransactions(data)
     } catch (error) {
       console.error('Failed to load transactions:', error)
+      showToast('Gagal memuat transaksi', 'error')
     }
-  }, [])
+  }, [showToast])
 
   useEffect(() => {
     const getUser = async () => {
