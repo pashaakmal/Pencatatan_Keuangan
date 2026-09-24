@@ -16,8 +16,9 @@ export interface Transaction {
   user_id: string;
   amount: number;
   type: TransactionType;
-  category: TransactionCategory;
-  date: string; // Format: YYYY-MM-DD
+  category: string; // Sekarang string biasa, bisa custom
+  custom_category?: string | null; // Untuk kategori custom "lainnya"
+  date: string; // Format: ISO Timestamp (YYYY-MM-DDTHH:MM:SS)
   note: string | null;
   created_at: string; // ISO Timestamp
 }
